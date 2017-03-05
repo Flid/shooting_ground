@@ -1,0 +1,17 @@
+{% block body%}
+
+<h4> Hi! </h4>
+<table>
+  <tr>
+    <th>Created</th>
+    <th>Name</th>
+  </tr>
+{% for session in shooting_sessions %}
+  <tr>
+    <td>{{session.created_at | format_unixtime}}</td>
+    <td><a href="/sessions/{{session.id | get_id}}"> {{session.name}}</a></td>
+  </tr>
+{% endfor %}
+</table>
+
+{% endblock %}
