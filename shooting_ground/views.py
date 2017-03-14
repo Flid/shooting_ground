@@ -45,12 +45,15 @@ def create_shooting_session_record(shooting_session_id):
     form = validate_form(forms.CreateSessionRecordForm)
 
     converter = CONVERTERS[form.type.data]
+    payload = converter(form.payload.data, form.seconds.data)
+    payload['seconds'] = form.seconds.data
 
     ssr = ShootingSessionRecord(
         shooting_session_id=shooting_session_id,
         seconds=form.seconds.data,
-        payload=json.dumps(converter(form.payload.data)),
-        raw_payload=form.type.data,
+        payload=json.dumps(payload),
+        raw_payload=form.payload.data,
+        source_type=form.type.data,
     )
     db.session.add(ssr)
     db.session.commit()
