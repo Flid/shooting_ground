@@ -32,6 +32,7 @@ class ShootingSessionRecord(db.Model):
     )
     seconds = db.Column(db.Float)
     payload = db.Column(db.Text)
+    raw_payload = db.Column(db.Text)
 
     __table_args__ = (
         db.UniqueConstraint('shooting_session_id', 'seconds', name='_unique_session_seconds'),

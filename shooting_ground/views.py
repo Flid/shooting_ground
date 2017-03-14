@@ -1,18 +1,17 @@
-from flask import request
 import json
+
+from . import formatters, forms
 from .app import app
-from .db import ShootingSession, ShootingSessionRecord, db
-from . import formatters
-from .utils import response_ok
 from .data_converters import CONVERTERS
-from . import forms
-from .utils import validate_form
+from .db import ShootingSession, ShootingSessionRecord, db
+from .utils import response_ok, validate_form
+
 CACHED_PAGES = {}
 
 
 @app.route('/')
 def index():
-    #if 'index.html' not in CACHED_PAGES:
+    #  if 'index.html' not in CACHED_PAGES:
     with open('static/index.html') as fd:
         CACHED_PAGES['index.html'] = fd.read()
 
@@ -51,6 +50,7 @@ def create_shooting_session_record(shooting_session_id):
         shooting_session_id=shooting_session_id,
         seconds=form.seconds.data,
         payload=json.dumps(converter(form.payload.data)),
+        raw_payload=form.type.data,
     )
     db.session.add(ssr)
     db.session.commit()
@@ -70,6 +70,6 @@ def list_shooting_session_records(shooting_session_id):
 
 @app.route('/emit', methods=['GET'])
 def emit_socket_message():
-    from flask_socketio import emit, join_room, leave_room, send
+    from flask_socketio import emit
     emit('test_message', {'a': 'b'}, namespace='', room='test')
     return 'Done'
