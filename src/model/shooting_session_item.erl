@@ -1,2 +1,0 @@
--module(shooting_session_item, [Id, SessionId, Seconds, Data]).
--compile(export_all).

@@ -1,8 +1,0 @@
-{application, shooting_ground, [
-        {description, "My Awesome Web Framework"},
-        {vsn, "0.0.1"},
-        {modules, []},
-        {registered, []},
-        {applications, [kernel, stdlib, crypto]},
-        {env, []}
-    ]}.
