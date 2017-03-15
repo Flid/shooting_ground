@@ -1,11 +1,13 @@
-from wtforms import Form, StringField, validators, FloatField
+from wtforms import FloatField, Form, StringField, validators
+
 from .data_converters import CONVERTERS
 
-class CreateSessionForm(Form):
+
+class CreateJobForm(Form):
     name = StringField('Username', [validators.Length(min=4, max=128)])
 
 
-class CreateSessionRecordForm(Form):
+class CreateJobRecordForm(Form):
     seconds = FloatField(validators=[
         validators.NumberRange(min=0),
     ])

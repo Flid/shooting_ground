@@ -11,7 +11,7 @@
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
         socket.on('connect', function() {
-            socket.emit('listening_session', {session_id: 3});
+            socket.emit('listening_job', {job_id: 3});
         });
 
         socket.on('new_data', function(new_data){

@@ -1,7 +1,7 @@
 import json
 
 
-def format_shooting_session(ss):
+def format_job(ss):
     return {
         'id': ss.id,
         'name': ss.name,
@@ -9,9 +9,9 @@ def format_shooting_session(ss):
     }
 
 
-def format_shooting_session_record(ssr):
+def format_job_record(ssr):
     return {
-        'shooting_session': ssr.shooting_session_id,
+        'job_id': ssr.job_id,
         'seconds': ssr.seconds,
         'payload': json.loads(ssr.payload),
     }

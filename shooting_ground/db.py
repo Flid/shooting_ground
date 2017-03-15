@@ -10,7 +10,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-class ShootingSession(db.Model):
+class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -22,12 +22,12 @@ class ShootingSession(db.Model):
         )
 
 
-class ShootingSessionRecord(db.Model):
+class JobRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    shooting_session_id = db.Column(db.Integer, db.ForeignKey('shooting_session.id'))
-    shooting_session = db.relationship(
-        'ShootingSession',
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id'))
+    job = db.relationship(
+        'Job',
         backref=db.backref('records', lazy='dynamic'),
     )
     seconds = db.Column(db.Float)
@@ -36,12 +36,12 @@ class ShootingSessionRecord(db.Model):
     source_type = db.Column(db.Text)
 
     __table_args__ = (
-        db.UniqueConstraint('shooting_session_id', 'seconds', name='_unique_session_seconds'),
+        db.UniqueConstraint('job_id', 'seconds', name='_unique_job_seconds'),
     )
 
     def __repr__(self):
         return '<%s %s %s>' % (
             self.__class__.__name__,
-            self.shooting_session,
+            self.job_id,
             self.seconds,
         )
