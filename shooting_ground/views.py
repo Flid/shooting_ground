@@ -1,5 +1,8 @@
 import json
 
+from flask.templating import render_template
+from flask_socketio import emit
+
 from . import formatters, forms
 from .app import app
 from .data_converters import CONVERTERS
@@ -11,11 +14,12 @@ CACHED_PAGES = {}
 
 @app.route('/')
 def index():
-    #  if 'index.html' not in CACHED_PAGES:
-    with open('static/index.html') as fd:
-        CACHED_PAGES['index.html'] = fd.read()
+    return render_template('index.html')
 
-    return CACHED_PAGES['index.html']
+
+@app.route('/jobs/<int:job_id>')
+def job_page(job_id):
+    return render_template('job.html', job_id=job_id)
 
 
 @app.route('/jobs/', methods=['POST'])
@@ -27,6 +31,17 @@ def create_job():
     )
     db.session.add(ss)
     db.session.commit()
+
+    emit(
+        'new_jobs',
+        {
+            'initial': False,
+            'items': [formatters.format_job(ss)],
+        },
+        room='lobby',
+        namespace='/',
+        broadcast=True,
+    )
 
     return response_ok(formatters.format_job(ss))
 
@@ -42,21 +57,31 @@ def list_jobs():
 
 @app.route('/jobs/<int:job_id>/records/', methods=['POST'])
 def create_job_record(job_id):
+    from flask import request
     form = validate_form(forms.CreateJobRecordForm)
 
     converter = CONVERTERS[form.type.data]
-    payload = converter(form.payload.data, form.seconds.data)
+    payload = converter(form.payload.data)
     payload['seconds'] = form.seconds.data
+    payload_str = json.dumps(payload)
 
     ssr = JobRecord(
         job_id=job_id,
         seconds=form.seconds.data,
-        payload=json.dumps(payload),
+        payload=payload_str,
         raw_payload=form.payload.data,
         source_type=form.type.data,
     )
     db.session.add(ssr)
     db.session.commit()
+
+    emit(
+        'new_data',
+        [payload_str],
+        room='job_%s' % job_id,
+        namespace='/',
+        broadcast=True,
+    )
 
     return response_ok(formatters.format_job_record(ssr))
 
@@ -68,18 +93,3 @@ def list_job_records(job_id):
     return response_ok([
         formatters.format_job_record(r) for r in records
     ])
-
-
-@app.route('/emit', methods=['GET'])
-def emit_socket_message():
-    from flask_socketio import emit
-    from flask_socketio.namespace import Namespace
-
-    items = JobRecord.query.filter_by(job_id=3).order_by('seconds')
-    to_send = []
-
-    for item in items:
-        to_send.append(item.payload)
-
-    emit('new_data', to_send, room='job_3', namespace='/', broadcast=True)
-    return 'Done'

@@ -2,8 +2,9 @@ import logging
 
 from flask_socketio import emit, join_room, leave_room
 
+from . import formatters
 from .app import socketio
-from .db import JobRecord
+from .db import Job, JobRecord
 
 log = logging.getLogger(__name__)
 
@@ -16,27 +17,36 @@ def handle_message(message):
 @socketio.on('connect', namespace='/')
 def test_connect():
     log.error('New websocket connected')
-    join_room('test')
-    emit('my response', {'data': 'Connected'})
 
 
 @socketio.on('disconnect', namespace='/')
 def test_disconnect():
-    leave_room('test')
     log.debug('Websocket has been disconnected')
 
 
 @socketio.on('listening_job', namespace='/')
 def on_listening_job(data):
     join_room('job_' + str(data['job_id']))
-    send_new_data(data['job_id'])
+
+    # Send existing data
+    items = JobRecord.query.filter_by(job_id=data['job_id']).order_by('seconds')
+    to_send = [item.payload for item in items]
+
+    if to_send:
+        emit('new_data', to_send)
 
 
-def send_new_data(job_id):
-    items = JobRecord.query.filter_by(job_id=job_id).order_by('seconds')
-    to_send = []
+@socketio.on('listening_lobby', namespace='/')
+def on_listening_job():
+    join_room('lobby')
 
-    for item in items:
-        to_send.append(item.payload)
+    # Send existing jobs
+    items = Job.query.order_by('created_at').all()
 
-    emit('new_data', to_send)
+    to_send = [formatters.format_job(item) for item in items]
+
+    if to_send:
+        emit('new_jobs', {
+            'initial': True,
+            'items': to_send,
+        })

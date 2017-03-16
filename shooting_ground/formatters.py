@@ -5,7 +5,7 @@ def format_job(ss):
     return {
         'id': ss.id,
         'name': ss.name,
-        'created_at': ss.created_at,
+        'created_at': ss.created_at.isoformat(),
     }
 
 

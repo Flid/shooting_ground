@@ -5,7 +5,8 @@ from flask_socketio import SocketIO
 
 from . import config
 
-app = Flask(__name__)
+
+app = Flask(__name__, template_folder=config.TEMPLATES_DIR)
 socketio = SocketIO(app)
 
 

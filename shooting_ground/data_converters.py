@@ -7,7 +7,10 @@ def convert_from_yandex_tank(data):
     data = json.loads(data)
 
     response_times = data['data']['overall']['interval_real']['q']
-    response_times_quantiles = [response_times['q'], response_times['value']]
+    response_times_quantiles = [
+        [str(item) + '%' for item in response_times['q']],
+        [int(item / 1000) for item in response_times['value']],
+    ]
     rps = data['stats']['metrics']['reqps']
     instances = data['stats']['metrics']['instances']
 

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block scripts %}
+<script type="text/javascript" charset="utf-8">
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    socket.on('connect', function() {
+        socket.emit('listening_lobby');
+    });
+
+    socket.on('new_jobs', function(data){
+        console.log(data);
+
+        if (data.initial) {
+            $('#jobs_list tbody tr').remove();
+        }
+
+        var new_jobs = data.items;
+
+        for (var i=0; i<new_jobs.length; i++) {
+            var job = new_jobs[i];
+            var name = job.name;
+
+            if (name == '') {
+                name = "&lt;not set&gt;";
+            }
+            $('#jobs_list > tbody').prepend(
+                '<tr><td><a href="/jobs/' + job.id + '">' + job.id + '</a></td><td>' + name + '</td></tr></a>'
+            );
+
+        }
+    });
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<table id="jobs_list">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    </tbody>
+</table>
+
+{% endblock %}

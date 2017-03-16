@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block scripts %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var rps_dataset;
+
+    socket.on('connect', function() {
+        socket.emit('listening_job', {job_id: {{job_id}} });
+    });
+
+    socket.on('new_data', function(new_data){
+        console.log(new_data);
+
+
+        if (percentiles_config['data']['datasets'].length == 0) {
+
+            var dataset_keys = JSON.parse(new_data[0])['response_times_quantiles'][0];
+            for (var i=0; i<dataset_keys.length; i++) {
+                percentiles_config['data']['datasets'].push({
+                    label: dataset_keys[i],
+                    data: [],
+                });
+            }
+
+            rps_dataset = {
+                label: 'RPS',
+                type: 'line',
+                fill: false,
+                borderColor: 'rgba(40, 0, 0, 0.9)',
+                yAxisID: 'rps',
+                data: [],
+            };
+            percentiles_config['data']['datasets'].push(rps_dataset);
+        }
+
+        for (var i=0; i<new_data.length; i++) {
+            new_data_item = JSON.parse(new_data[i]);
+            percentiles_config['data']['labels'].push(new_data_item['seconds']);
+
+            for (var j=0; j<new_data_item['response_times_quantiles'][0].length; j++) {
+                percentiles_config['data']['datasets'][j]['data'].push(
+                    new_data_item['response_times_quantiles'][1][j]
+                );
+            }
+            rps_dataset.data.push(new_data_item['rps']);
+        }
+
+        window.percentilesChart.update();
+    });
+
+    var percentiles_config = {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [],
+        },
+        options: {
+            responsive: true,
+            title:{
+                display:true,
+                text:'Percentiles'
+            },
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: true
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time, sec'
+                    }
+                }],
+                yAxes: [{
+                    id: 'main',
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Response Times, msec'
+                    }
+                },
+                {
+                    id: 'rps',
+                    display: false,
+                }]
+            }
+        }
+    };
+    window.onload = function() {
+        var ctx = document.getElementById("canvas").getContext("2d");
+        window.percentilesChart = new Chart(ctx, percentiles_config);
+    };
+</script>
+{% endblock %}
+
+{% block style %}
+canvas{
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+{% endblock %}
+
+
+
+{% block content %}
+    <div style="width:75%;">
+        <canvas id="canvas"></canvas>
+    </div>
+{% endblock %}

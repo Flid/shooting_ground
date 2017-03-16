@@ -4,7 +4,7 @@ from .data_converters import CONVERTERS
 
 
 class CreateJobForm(Form):
-    name = StringField('Username', [validators.Length(min=4, max=128)])
+    name = StringField('Username', [validators.Length(max=128)])
 
 
 class CreateJobRecordForm(Form):
